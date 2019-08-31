@@ -2,7 +2,7 @@
     import Navaid from 'navaid'
     import { onDestroy } from 'svelte'
     import Notifications from './components/Notifications.svelte'
-    
+
 
     import Landing from './pages/Landing.svelte'
     import Battles from './pages/Battles.svelte'

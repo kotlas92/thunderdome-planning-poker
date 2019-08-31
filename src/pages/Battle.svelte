@@ -18,10 +18,10 @@
 
     const hostname = window.location.origin
     const socketExtension = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    
+
     let socketError = false
     let socketReconnecting = false
-    let points = ['0', '1/2', '1', '2', '3', '5', '8', '13', '20', '40', '100', '?']
+    let points = ['1', '2', '3', '5', '8', '13']
     let vote = ''
     let voteStartTime = new Date()
     let battle = {}
@@ -62,7 +62,7 @@
                 currentPlanName = activePlan.name
                 voteStartTime = new Date(activePlan.voteStartTime)
 
-                battle.plans = updatedPlans                        
+                battle.plans = updatedPlans
                 battle.activePlanId = activePlan.id
                 battle.votingLocked = false
                 vote = ''
@@ -70,7 +70,7 @@
             case "plan_skipped":
                 const updatedPlans2 = JSON.parse(parsedEvent.value)
                 currentPlanName = '[Voting not started]'
-                battle.plans = updatedPlans2                        
+                battle.plans = updatedPlans2
                 battle.activePlanId = ''
                 battle.votingLocked = true
                 vote = ''
@@ -193,7 +193,7 @@
         const currentPlan = battle.plans.find(p => p.id === battle.activePlanId)
         const voted = currentPlan.votes.find(w => w.warriorId === warriorId)
 
-        return voted !== undefined ? voted.vote : '' 
+        return voted !== undefined ? voted.vote : ''
     }
 
     // get hightest vote from active plan
@@ -216,7 +216,7 @@
             activePlan.votes.forEach(v => {
                 ++voteCounts[v.vote]
             })
-            
+
             // find the highest vote giving priority to higher numbers
             reversedPoints.forEach(p => {
                 if (voteCounts[p] > highestVote.count) {
@@ -306,7 +306,7 @@
                     sendSocketEvent={sendSocketEvent}
                 />
             </div>
-            
+
             <div class="w-full lg:w-1/4 px-4">
                 <div class="bg-white shadow-md mb-4 rounded">
                     <div class="bg-blue p-4 rounded-t">

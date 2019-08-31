@@ -166,6 +166,33 @@ func CreateBattle(LeaderID string, BattleName string) (*Battle, error) {
 	return b, nil
 }
 
+// GetBattleByName gets a battle by name
+func GetBattleByName(BattleName string) (*Battle, error) {
+	var b = &Battle{
+		BattleID:     "",
+		LeaderID:     "",
+		BattleName:   BattleName,
+		Warriors:     make([]*Warrior, 0),
+		Plans:        make([]*Plan, 0),
+		VotingLocked: true,
+		ActivePlanID: "",
+	}
+
+	// get battle
+	var ActivePlanID sql.NullString
+	e := db.QueryRow("SELECT id, name, leader_id, voting_locked, active_plan_id FROM battles WHERE name = $1", BattleName).Scan(&b.BattleID, &b.BattleName, &b.LeaderID, &b.VotingLocked, &ActivePlanID)
+	if e != nil {
+		log.Println(e)
+		return nil, errors.New("Not found")
+	}
+
+	b.ActivePlanID = ActivePlanID.String
+	b.Warriors = GetActiveWarriors(b.BattleID)
+	b.Plans = GetPlans(b.BattleID)
+
+	return b, nil
+}
+
 // GetBattle gets a battle by ID
 func GetBattle(BattleID string) (*Battle, error) {
 	var b = &Battle{
@@ -429,8 +456,9 @@ func ActivatePlanVoting(BattleID string, warriorID string, PlanID string) ([]*Pl
 	return plans, nil
 }
 
-// SetVote sets a warriors vote for the plan
-func SetVote(BattleID string, WarriorID string, PlanID string, VoteValue string) []*Plan {
+func getVotes(PlanID string) ([]*Vote, error) {
+	log.Println("Get votes for plan ", PlanID)
+
 	// get plan
 	var v string
 	e := db.QueryRow("SELECT votes FROM plans WHERE id = $1", PlanID).Scan(&v)
@@ -442,6 +470,49 @@ func SetVote(BattleID string, WarriorID string, PlanID string, VoteValue string)
 	err := json.Unmarshal([]byte(v), &votes)
 	if err != nil {
 		log.Println(err)
+	}
+
+	return votes, err
+}
+
+func isWarriorVoted(PlanID string, WarriorID string) (bool) {
+	votes, err := getVotes(PlanID)
+
+	if err != nil {
+		log.Println("Error: ", err)
+	}
+
+	for i := range votes {
+		if votes[i].WarriorID == WarriorID {
+			return true
+		}
+	}
+
+	return false
+}
+
+func areAllWarriorsVoted(PlanID string, BattleID string) (bool) {
+	log.Println("Check if all warriors voted.")
+
+	warriors := GetActiveWarriors(BattleID)
+
+	for i :=  range warriors {
+		if !isWarriorVoted(PlanID, warriors[i].WarriorID) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// SetVote sets a warriors vote for the plan
+func SetVote(BattleID string, WarriorID string, PlanID string, VoteValue string) []*Plan {
+	log.Println("set vote for battle ", BattleID, WarriorID, PlanID, VoteValue)
+
+	votes, err := getVotes(PlanID)
+
+	if err != nil {
+		log.Println("Error: ", err)
 	}
 
 	var voteIndex int
@@ -471,6 +542,8 @@ func SetVote(BattleID string, WarriorID string, PlanID string, VoteValue string)
 		`UPDATE plans SET updated_date = NOW(), votes = $1 WHERE id = $2`, string(votesJSON), PlanID); err != nil {
 		log.Println(err)
 	}
+
+	log.Println(string(votesJSON))
 
 	plans := GetPlans(BattleID)
 
@@ -522,10 +595,10 @@ func RetractVote(BattleID string, WarriorID string, PlanID string) []*Plan {
 
 // EndPlanVoting sets plan to active: false
 func EndPlanVoting(BattleID string, warriorID string, PlanID string) ([]*Plan, error) {
-	err := ConfirmLeader(BattleID, warriorID)
-	if err != nil {
-		return nil, errors.New("Incorrect permissions")
-	}
+	// err := ConfirmLeader(BattleID, warriorID)
+	// if err != nil {
+	// 	return nil, errors.New("Incorrect permissions")
+	// }
 
 	// set current to false
 	if _, err := db.Exec(`UPDATE plans SET updated_date = NOW(), active = false, voteend_time = NOW() WHERE battle_id = $1`, BattleID); err != nil {

@@ -1,6 +1,6 @@
 <script>
     import AddPlan from '../components/AddPlan.svelte'
-    
+
     export let plans = []
     export let isLeader = false
     export let sendSocketEvent = () => {}
@@ -51,7 +51,7 @@
 <div class="bg-white shadow-md mb-4 rounded">
     <div class="flex bg-grey-lighter p-4 rounded-t">
         <div class="w-1/2 lg:w-3/4">
-            <h3 class="text-2xl">Plans</h3>
+            <h3 class="text-2xl">Tasks</h3>
         </div>
         <div class="w-1/2 lg:w-1/4 text-right">
             {#if isLeader}
@@ -59,7 +59,7 @@
                     class="bg-transparent hover:bg-blue text-blue-dark font-semibold hover:text-white py-2 px-4 border border-blue hover:border-transparent rounded"
                     on:click={toggleAddPlan()}
                 >
-                    Add Plan
+                    Add Task
                 </button>
             {/if}
         </div>
@@ -87,7 +87,7 @@
     {#each plansToShow as plan (plan.id)}
         <div class="flex flex-wrap border-b border-grey-light p-4" data-testId="battlePlan" data-planName={plan.name}>
             <div class="w-full lg:w-3/4 mb-4 lg:mb-0">
-                <div class="inline-block font-bold align-middle" data-testId="battlePlanName">{plan.name}</div>
+                    <a class="inline-block font-bold align-middle" data-testId="battlePlanName" href="{plan.name}" target="_blank">{plan.name}</a>
                 &nbsp;
                 {#if plan.points !== ''}<div class="inline-block font-bold text-green-dark border-green border px-2 py-1 rounded ml-2" data-testId="battlePlanPoints">{plan.points}</div>{/if}
             </div>

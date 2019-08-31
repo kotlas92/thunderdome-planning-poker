@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	// "fmt"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -105,6 +106,20 @@ func (s subscription) readPump() {
 
 			updatedPlans, _ := json.Marshal(plans)
 			msg = CreateSocketEvent("vote_activity", string(updatedPlans), warriorID)
+
+			if areAllWarriorsVoted(PlanID, battleID) {
+				log.Println("All warrioirs voted")
+
+				plans, err :=  EndPlanVoting(battleID, warriorID, PlanID)
+
+				if err != nil {
+					log.Println(err)
+				}
+
+				updatedPlans, _ := json.Marshal(plans)
+
+				msg = CreateSocketEvent("voting_ended", string(updatedPlans), "")
+			}
 		case "retract_vote":
 			PlanID := keyVal["value"]
 
