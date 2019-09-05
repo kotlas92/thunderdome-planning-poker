@@ -270,7 +270,9 @@
     {#if battle.name && !socketReconnecting && !socketError}
         <div class="mb-6 flex flex-wrap">
             <div class="w-full text-center md:w-2/3 md:text-left">
-                <h1>{currentPlanName}</h1>
+                <h1>
+                    <a href="{currentPlanName}" target="_blank">{currentPlanName}</a>
+                </h1>
                 <h2 class="text-grey-darker">{battle.name}</h2>
             </div>
             <div class="w-full md:w-1/3 text-center md:text-right font-semibold text-3xl md:text-4xl text-grey-darker" data-testId="votingTimer">
